@@ -4,19 +4,17 @@
 #include <string>
 
 namespace abnf {
-    class Variable {
-        private:
-            std::string _name;
-            std::string _decl_str;
+class Variable {
+   private:
+    std::string _name;  // Name of variable
 
-        public:
-            std::string get_name();
-            std::string get_decl_str();
+   public:
+    std::string def_string;  // Definition string
 
-            void concat_decl(std::string decl_str);
+    std::string get_name();  // Get variable name
 
-            Variable(std::string name, std::string decl_str);
-    };
+    Variable(std::string name, std::string decl_str);
 };
+};  // namespace abnf
 
 #endif
