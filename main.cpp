@@ -10,7 +10,6 @@
 #include "src/variable.cpp"
 
 int main(int argc, char* argv[]) {
-    // int main() {
     abnf::VarCollection var_collection;
 
     std::string src_file(argv[1]);
