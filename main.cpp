@@ -19,9 +19,10 @@ int main(int argc, char* argv[]) {
     printf("\n");
 
     for (auto item : var_collection.vars) {
-        printf("--- Variable %s ---\n", item.first.c_str());
+        printf("***** Variable %s *****\n", item.first.c_str());
         item.second.lex_fatal();
         item.second.print_tokens();
+        printf("\n");
     }
 
     return 0;

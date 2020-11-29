@@ -51,6 +51,14 @@ lex_return_t Variable::lex(std::string& msg) {
             } else if (c == ';') {
                 // Comment
                 break;
+            } else if (is_alpha(c)) {
+                // VARIABLE?
+                token.type = "identifier";
+                token.data.push_back(ctos(c));
+            } else if (c == '<') {
+                // VARIABLE enclosed in <>
+                token.type = "identifier";
+                token.data.push_back("");
             } else {
                 msg = "error: unknown identification token " + ctos(c);
                 return {pos, 1};
@@ -140,6 +148,14 @@ lex_return_t Variable::lex(std::string& msg) {
                     token = {};
                 }
             }
+        } else if (token.type == "identifier") {
+            if (is_alpha(c) || c == '_' || c == '-') {
+                token.data[0] += c;
+            } else {
+                if (c == '>') inc++;  // Hop over this
+                tokens.push_back(token);
+                token = {};
+            }
         } else {
             msg = "error: unknown token type " + token.type;
             return {pos, 1};
@@ -167,11 +183,7 @@ lex_return_t Variable::lex(std::string& msg) {
         token = {};
     }
 
-    _tokens = tokens;
-    print_tokens();
-    printf("\n----\n");
-
-    // ============================= Tidy tokens =============================
+    // ============================= Post-Lexer Checking/Tidying
     // - Convert all numbers to Base 10 and remove base char
     // - Check numerical_ranges are valid
     int token_count = tokens.size();
@@ -219,7 +231,7 @@ lex_return_t Variable::lex(std::string& msg) {
 
     _tokens = tokens;
     return {-1, 0};
-}  // namespace abnf
+}
 
 void Variable::lex_fatal() {
     std::string msg;
@@ -239,18 +251,3 @@ void Variable::print_tokens() {
     }
 }
 };  // namespace abnf
-
-/*
-/ Check that range is positive
-                    int base = charbase_to_int(token_data[0][0]);
-                    int lower = std::stoi(token_data[1], nullptr, base);
-                    int upper = std::stoi(token_data[2], nullptr, base);
-                    printf("Range: %s - %s \n", std::to_string(lower).c_str(),
-                           std::to_string(upper).c_str());
-                    if (lower >= upper) {
-                        msg =
-                            "error: numeric range: upper bound must be greater "
-                            "than lower bound";
-                        return {t_start + 2, t_len};
-                    }
-                    */

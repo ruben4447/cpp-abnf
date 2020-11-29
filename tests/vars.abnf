@@ -1,0 +1,2 @@
+letter = %d65-90
+pair = letter space <letter>

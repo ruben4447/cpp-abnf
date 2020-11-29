@@ -83,6 +83,11 @@ int charbase_to_int(char base) {
     exit(1);
 }
 
+// Is alpha? [A-Za-z]
+bool is_alpha(char c) {
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
+
 // Convert string to lower case
 std::string str_lower(const std::string str) {
     std::string out;
@@ -97,14 +102,6 @@ std::string* get_last(std::vector<std::string>& vector) {
 
 // Convert character to string
 std::string ctos(const char c) { return std::string(1, c); }
-
-void _push_token(std::string& type, std::vector<std::string>& data, int pos,
-                 int& len, std::vector<abnf::token_t>& tokens) {
-    tokens.push_back({type, data, pos, len});
-    type = "";
-    data.clear();
-    len = 0;
-}
 
 // Throw an error
 void throw_error(std::string text, std::string error, int pos_start,

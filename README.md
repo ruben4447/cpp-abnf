@@ -32,6 +32,7 @@ Declaration: `rule = definition [; comment] CR LF`
 
 - May be surrounded by `<>`
 - Are case-insentitive: `<Hello>`, `hello` and `HeLlO` are considered the same
+- Rules may appear in definitions (even if it has not been defined yet)
 
 ### Literal Values
 
@@ -39,7 +40,7 @@ Declaration: `rule = definition [; comment] CR LF`
 
 - Surrounded by `""`.
 - By default, strings are case-insensitive; the string `hello` will match `HELLO` and `Hello`.
-- May be preceded by a flag: %i for case-insensitivity (default) or %s for case-sensitivity (NB flag must be directly before a string e.g. `%s"Hi"`)
+- May be preceded by a flag: `%i` for case-insensitivity (default) or `%s` for case-sensitivity (NB flag must be directly before a string e.g. `%s"Hi"`)
 
 #### Numerical
 
