@@ -103,6 +103,15 @@ std::string* get_last(std::vector<std::string>& vector) {
 // Convert character to string
 std::string ctos(const char c) { return std::string(1, c); }
 
+// Get index of thing in vector
+int index_of(std::vector<std::string>& strings, std::string& string) {
+    int length = strings.size();
+    for (int i = 0; i < length; ++i) {
+        if (string == strings[i]) return i;
+    }
+    return -1;
+}
+
 // Throw an error
 void throw_error(std::string text, std::string error, int pos_start,
                  int pos_end = -1) {

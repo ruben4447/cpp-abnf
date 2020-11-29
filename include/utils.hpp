@@ -21,6 +21,7 @@ std::string str_lower(const std::string str);
 std::string* get_last(std::vector<std::string>& vector);
 
 std::string ctos(const char c);
+int index_of(std::vector<std::string>&, std::string&);
 
 void throw_error(std::string text, std::string error, int pos_start,
                  int pos_end);
