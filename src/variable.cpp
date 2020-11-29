@@ -8,12 +8,14 @@
 #include "../include/utils.hpp"
 
 namespace abnf {
-Variable::Variable(const char* name, std::string decl_str) {
+Variable::Variable(const char* name, bool is_const, std::string decl_str) {
     _name = name;
+    _is_const = is_const;
     def_string = decl_str;
 }
 
 std::string Variable::get_name() { return _name; }
+bool Variable::is_const() { return _is_const; }
 
 /**
  *  String: { "string", { flag, str } }

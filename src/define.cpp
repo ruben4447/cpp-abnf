@@ -59,7 +59,7 @@ int_pair_t define_var(std::string input, VarCollection* var_collection,
     }
 
     // Extract assignation sign
-    pattern = "^=/?";
+    pattern = "^(=/|:=|=)";
     std::regex_search(input, matches, pattern);
     std::string assign_op;
     if (matches.size() == 0) {
@@ -83,15 +83,27 @@ int_pair_t define_var(std::string input, VarCollection* var_collection,
             msg = "error: cannot concatenate to unresolved name " + var_name;
             return {whitespace_len, var_name.length()};
         } else {  // New variable... create new variable
-            Variable var(var_name.c_str(), input);
+            Variable var(var_name.c_str(), assign_op == ":=", input);
             var_collection->vars.insert({var_name, var});
         }
+    } else if (assign_op == ":=") {
+        // Cannot use := anywhere but definition
+        msg = "error: cannot use constant assignation with resolvable name";
+        return {pos - 2, 2};
+    } else if (var_search->second.is_const()) {
+        msg = "error: mofification of constant name " + var_name;
+        int oplen = assign_op.length();
+        return {pos - oplen, oplen + input.length()};
     } else if (assign_op == "=") {
         // Overwrite old contents
         var_search->second.def_string = input;
     } else if (assign_op == "=/") {
         // Append input
         var_search->second.def_string += "/ " + input;
+    } else {
+        msg = "error: unknown assignment operator " + assign_op;
+        int len = assign_op.length();
+        return {pos - len, len};
     }
 
     msg = var_name;

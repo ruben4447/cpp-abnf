@@ -26,7 +26,13 @@ Command Line: `./main.exe [file].abnf`
 
 Comments start with `;` and continue until end of the line
 
-Declaration: `rule = definition [; comment] CR LF`
+Declaration: `rule op definition [; comment] CR LF`
+
+### op
+
+- Assignment operator `=`: assigned `definition` to `rule`
+- Concatenation operator `=/`: adds `definition` as an alternate rule to `rule` (i.e. `/` + `definition`)
+- [*Non-spec*] Constant assignment `:=`: acts as a `=`, but declares `rule` as a constant; re-declaration or modification is not allowed.
 
 ### Rules
 

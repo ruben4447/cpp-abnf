@@ -15,7 +15,7 @@ std::vector<std::string> string_split(std::string program, char delimiter);
 
 bool is_digit(char c);
 bool digit_match_base(char base, char digit);
-int basechar_to_int(char base);
+int charbase_to_int(char base);
 bool is_alpha(char c);
 std::string str_lower(const std::string str);
 std::string* get_last(std::vector<std::string>& vector);

@@ -16,12 +16,14 @@ class Variable {
    private:
     const char* _name;           // Name of variable
     std::vector<Token> _tokens;  // Result of lex()
+    bool _is_const;              // Can be redefined?
 
    public:
     std::string def_string;  // Definition string
 
-    Variable(const char*, std::string decl_str);
+    Variable(const char*, bool is_const, std::string decl_str);
     std::string get_name();  // Get variable name
+    bool is_const();
 
     void print_tokens();  // Print tokens to screen [DEBUG]
 
