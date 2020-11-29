@@ -1,7 +1,7 @@
-#include <iostream>
 #include <regex>
 #include <string>
 
+#include "../include/consume.hpp"
 #include "../include/utils.hpp"
 #include "../include/var_collection.hpp"
 #include "../include/variable.hpp"
@@ -10,9 +10,13 @@ namespace abnf {
 // Define a variable... msg is set to either ERROR or 'variable name'
 bool define_var(std::string input, VarCollection* var_collection,
                 std::string& msg) {
-    std::cout << "Input: `" << input << "`" << std::endl;
-
     consume_whitespace(input);
+
+    // Comment?
+    if (input[0] == ';') {
+        msg = "comment";
+        return true;
+    }
 
     // Extract variable name
     std::string pattern_str = input[0] == '<' ? "^<([A-Za-z][A-Za-z0-9_-]*)>"
@@ -51,7 +55,7 @@ bool define_var(std::string input, VarCollection* var_collection,
     auto var_search = var_collection->vars.find(var_name);
     if (var_search == var_collection->vars.end()) {
         // New variable... create new variable
-        Variable var(var_name, input);
+        Variable var(var_name.c_str(), input);
         var_collection->vars.insert({var_name, var});
     } else if (assign_op == "=") {
         // Overwrite old contents
@@ -65,7 +69,18 @@ bool define_var(std::string input, VarCollection* var_collection,
     }
 
     msg = var_name;
-
     return true;
+}
+
+// Define variable, but terminate upon error. Return variable name.
+std::string define_var_fatal(std::string input, VarCollection* var_collection) {
+    std::string msg;
+    bool ok = define_var(input, var_collection, msg);
+    if (ok)
+        return msg;
+    else {
+        printf("\033[0;31m %s \033[0m \n", msg.c_str());
+        exit(1);
+    }
 }
 };  // namespace abnf

@@ -1,6 +1,6 @@
 @echo off
 echo Building main.cpp...
-g++ main.cpp -o main.exe
+g++ main.cpp -o main.exe -Os
 
 if %errorlevel% neq 0 exit
 

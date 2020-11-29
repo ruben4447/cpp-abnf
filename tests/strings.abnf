@@ -1,0 +1,2 @@
+; Test for string literal
+three = "3"
