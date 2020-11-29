@@ -1,3 +1,2 @@
 ; Test for string literal
-; three = "3"
-greeting = "Hello, world!
+greeting = "Hello, world!"

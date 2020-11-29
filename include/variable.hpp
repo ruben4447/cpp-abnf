@@ -5,15 +5,17 @@
 #include <tuple>
 #include <vector>
 
+#include "token_struct.hpp"
+
 namespace abnf {
 typedef std::tuple<std::string, std::vector<std::string>, int, int>
     token_t;  // This is used in lex(). { name, data, pos, length }
-typedef std::pair<int, int> lex_return_t;  // { errorpos, errorlen }
+typedef std::pair<int, int> lex_return_t;  // { spos, length }
 
 class Variable {
    private:
-    const char* _name;             // Name of variable
-    std::vector<token_t> _tokens;  // Result of lex()
+    const char* _name;           // Name of variable
+    std::vector<Token> _tokens;  // Result of lex()
 
    public:
     std::string def_string;  // Definition string
