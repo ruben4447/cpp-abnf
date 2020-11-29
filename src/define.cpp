@@ -10,11 +10,7 @@ namespace abnf {
 // Define a variable... msg is set to either ERROR or 'variable name'
 bool define_var(std::string input, VarCollection* var_collection,
                 std::string& msg) {
-    int pos = 0;
-
-    std::string original = input;
     consume_whitespace(input);
-    pos += original.length() - input.length();
 
     // Comment?
     if (input[0] == ';') {
@@ -36,13 +32,10 @@ bool define_var(std::string input, VarCollection* var_collection,
     } else {
         // str(0) contains whole match; str(1) contains in (...)
         var_name = str_lower(matches.str(1));
-        pos += matches.str(0).length();
         input.erase(0, matches.str(0).length());
     }
 
-    original = input;
     consume_whitespace(input);
-    pos += original.length() - input.length();
 
     // Extract assignation sign
     pattern = "^=/?";
@@ -53,7 +46,6 @@ bool define_var(std::string input, VarCollection* var_collection,
         return false;
     } else {
         assign_op = matches.str(0);
-        pos += assign_op.length();
         input.erase(0, assign_op.length());
     }
 
@@ -61,7 +53,7 @@ bool define_var(std::string input, VarCollection* var_collection,
     auto var_search = var_collection->vars.find(var_name);
     if (var_search == var_collection->vars.end()) {
         // New variable... create new variable
-        Variable var(var_name.c_str(), input, pos);
+        Variable var(var_name.c_str(), input);
         var_collection->vars.insert({var_name, var});
     } else if (assign_op == "=") {
         // Overwrite old contents

@@ -21,6 +21,7 @@ std::string* get_last(std::vector<std::string>& vector);
 
 std::string ctos(const char c);
 void _push_token(std::string& type, std::vector<std::string>& data, int pos,
+                 int& len,
                  std::vector<abnf::token_t>& tokens);  // Push to token array
 
 void throw_error(std::string text, std::string error, int pos_start,

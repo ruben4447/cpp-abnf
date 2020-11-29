@@ -99,10 +99,11 @@ std::string* get_last(std::vector<std::string>& vector) {
 std::string ctos(const char c) { return std::string(1, c); }
 
 void _push_token(std::string& type, std::vector<std::string>& data, int pos,
-                 std::vector<abnf::token_t>& tokens) {
-    tokens.push_back({type, data, pos});
+                 int& len, std::vector<abnf::token_t>& tokens) {
+    tokens.push_back({type, data, pos, len});
     type = "";
     data.clear();
+    len = 0;
 }
 
 // Throw an error

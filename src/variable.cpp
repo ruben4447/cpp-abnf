@@ -6,10 +6,9 @@
 #include "../include/utils.hpp"
 
 namespace abnf {
-Variable::Variable(const char* name, std::string decl_str, int start_def) {
+Variable::Variable(const char* name, std::string decl_str) {
     _name = name;
     def_string = decl_str;
-    _start_def = start_def;
 }
 
 std::string Variable::get_name() { return _name; }
@@ -19,13 +18,14 @@ std::string Variable::get_name() { return _name; }
  *  Numeric { "numeric", { base, num, ... } }
  *  Numeric Range: { "numeric_range", { base, lower, upper } }
  */
-int Variable::lex(std::string& msg) {
+lex_return_t Variable::lex(std::string& msg) {
     std::vector<token_t> tokens;
 
     // Data for next token
     std::string token_type;
     std::vector<std::string> token_data;
     int t_start;  // Start position
+    int t_len;    // Length of token (so far)
 
     int lim = def_string.length();
     std::string source = def_string;  // Copy of def_string
@@ -54,7 +54,7 @@ int Variable::lex(std::string& msg) {
                 break;
             } else {
                 msg = "error: unknown identification token " + ctos(c);
-                return pos;
+                return {pos, 1};
             }
             t_start = pos;  // Set starting position
         } else if (token_type == "string") {
@@ -64,7 +64,7 @@ int Variable::lex(std::string& msg) {
                 inc = 2;
             } else if (c == '"') {
                 // Terminate string
-                _push_token(token_type, token_data, t_start, tokens);
+                _push_token(token_type, token_data, t_start, t_len, tokens);
             } else {
                 // Add to string literal
                 token_data[1] += c;
@@ -72,7 +72,7 @@ int Variable::lex(std::string& msg) {
         } else if (token_type == "percent") {
             if (source.length() == 1) {
                 msg = "error: unexpected end of input";
-                return false;
+                return {pos, 1};
             } else if (c == 'b' || c == 'd' || c == 'x') {
                 char d = source[1];
                 if (digit_match_base(c, d)) {
@@ -84,7 +84,7 @@ int Variable::lex(std::string& msg) {
                 } else {
                     msg = "error: invalid literal for base " + ctos(c) + ": " +
                           ctos(d);
-                    return pos + 1;
+                    return {pos + 1, 1};
                 }
             } else if (c == 's' || c == 'i') {
                 // String flag
@@ -97,11 +97,11 @@ int Variable::lex(std::string& msg) {
                         "error: expected string to follow string flag: "
                         "expected \", got " +
                         ctos(source[1]);
-                    return pos + 1;
+                    return {pos - 1, 3};
                 }
             } else {
                 msg = "error: invalid token succeeding %: " + ctos(c);
-                return pos;
+                return {pos, 1};
             }
         } else if (token_type == "numeric") {
             // Digit?
@@ -113,8 +113,7 @@ int Variable::lex(std::string& msg) {
                 if (get_last(token_data)->length() == 0) {
                     msg = "error: invalid base-" + ctos(base) +
                           " digit: " + ctos(c);
-                    return pos;
-                    return pos;
+                    return {pos, 1};
                 } else {
                     // Start new numeric literal
                     token_data.push_back("");
@@ -124,7 +123,7 @@ int Variable::lex(std::string& msg) {
                 token_data.push_back("");
                 token_type = "numeric_range";
             } else {
-                _push_token(token_type, token_data, t_start, tokens);
+                _push_token(token_type, token_data, t_start, t_len, tokens);
                 inc = 0;
             }
         } else if (token_type == "numeric_range") {
@@ -136,34 +135,22 @@ int Variable::lex(std::string& msg) {
                 if (get_last(token_data)->length() == 0) {
                     msg = "error: invalid base-" + ctos(base) +
                           " digit: " + ctos(c);
-                    return pos;
+                    return {pos, 1};
                 } else {
-                    // Check that range is positive
-                    int base = charbase_to_int(token_data[0][0]);
-                    int lower = std::stoi(token_data[1], nullptr, base);
-                    int upper = std::stoi(token_data[2], nullptr, base);
-                    printf("Range: %s - %s \n", std::to_string(lower).c_str(),
-                           std::to_string(upper).c_str());
-                    if (lower >= upper) {
-                        msg =
-                            "error: numeric range: upper bound must be greater "
-                            "than lower bound";
-                        return pos - token_data[2].length();
-                    }
-
-                    _push_token(token_type, token_data, t_start, tokens);
+                    _push_token(token_type, token_data, t_start, t_len, tokens);
                     inc = 0;
                 }
             }
         } else {
             msg = "error: unknown token type " + token_type;
-            return pos;
+            return {pos, 1};
         }
 
         // Increment
         if (inc > 0) {
             pos += inc;
             source.erase(0, inc);
+            t_len += inc;
         }
     }
 
@@ -174,20 +161,25 @@ int Variable::lex(std::string& msg) {
          (token_data.size() != 3 || *get_last(token_data) == ""))) {
         // If string, or unfinished concatenation, or unfinished range...
         msg = "error: unexpected EOL whilst scanning " + token_type;
-        return lim;
+        return {lim, 2};
     } else if (token_type != "")
         // Push trailing token
-        _push_token(token_type, token_data, t_start, tokens);
+        _push_token(token_type, token_data, t_start, t_len, tokens);
+
+    // ============================= Tidy tokens =============================
+    // - Convert all numbers to Base 10 and remove base char
+    // - Check numerical_ranges are valid
+    // - Concatenate sequential strings with same flags
 
     _tokens = tokens;
-    return -1;
+    return {-1, 0};
 }  // namespace abnf
 
 void Variable::lex_fatal() {
     std::string msg;
-    int fpos = lex(msg);
-    if (fpos > -1) {
-        throw_error(def_string, msg, fpos, fpos + 1);
+    lex_return_t val = lex(msg);  // { pos, len } of error
+    if (val.first > -1) {
+        throw_error(def_string, msg, val.first, val.first + val.second);
     }
 }
 

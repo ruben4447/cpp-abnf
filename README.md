@@ -40,3 +40,20 @@ Declaration: `rule = definition [; comment] CR LF`
 - Surrounded by `""`.
 - By default, strings are case-insensitive; the string `hello` will match `HELLO` and `Hello`.
 - May be preceded by a flag: %i for case-insensitivity (default) or %s for case-sensitivity (NB flag must be directly before a string e.g. `%s"Hi"`)
+
+#### Numerical
+
+Format: `%<base><value>`
+
+- `base` : base of number (`d` = decimal, `b` = binary, `x` = hexadecimal)
+- `value` : numerical characters matching base
+
+Operations:
+
+- Concatenate
+  - Format: `%<base><value>.<value>` etc...
+  - Quick definition of multiple numerical values of same base in sequence
+- Range
+  - Format: `%<base><lower>-<upper>`
+  - Specifies any char in the range `lower <= char < upper` [Exclusive]
+  - NB range cannot be negative (i.e. `upper - lower > 0`)
