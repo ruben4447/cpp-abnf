@@ -20,4 +20,23 @@ About: [Coloured Text Output In Powershell](https://stackoverflow.com/questions/
 
 Command Line: `./main.exe [file].abnf`
 
-- `file` :
+- `file` : file containing ABNF rules
+
+## Syntax
+
+Comments start with `;` and continue until end of the line
+
+Declaration: `rule = definition [; comment] CR LF`
+
+### `rule`
+
+- May be surrounded by `<>`
+- Are case-insentitive: `<Hello>`, `hello` and `HeLlO` are considered the same
+
+### Literal Values
+
+#### Strings
+
+- Surrounded by `""`.
+- By default, strings are case-insensitive; the string `hello` will match `HELLO` and `Hello`.
+- May be preceded by a flag: %i for case-insensitivity (default) or %s for case-sensitivity (NB flag must be directly before a string e.g. `%s"Hi"`)

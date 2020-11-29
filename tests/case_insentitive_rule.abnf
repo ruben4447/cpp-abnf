@@ -1,0 +1,4 @@
+; Only one variable is expected to exist after definition
+three = "3"
+Three = "3"
+THREE = "3"

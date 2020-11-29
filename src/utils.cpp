@@ -1,6 +1,8 @@
 #ifndef _INCLUDED_UTIL_1
 #define _INCLUDED_UTIL_1
 
+#define CASE_TRANSFORM 'a' - 'A'
+
 #include "../include/utils.hpp"
 
 #include <chrono>
@@ -62,14 +64,74 @@ std::string string_remove(std::string program, char c) {
     return output;
 }
 
+bool is_digit(char c) { return c >= '0' && c <= '9'; }
+
+// Does the given digit match the given base?
+bool digit_match_base(char base, char digit) {
+    return (base == 'b' && (digit == '0' || digit == '1')) ||
+           (base == 'd' && is_digit(digit)) ||
+           (base == 'x' && (is_digit(digit) || (digit >= 'a' && digit <= 'f') ||
+                            (digit >= 'A' && digit <= 'F')));
+}
+
+// Convert base char to int
+int charbase_to_int(char base) {
+    if (base == 'd') return 10;
+    if (base == 'b') return 2;
+    if (base == 'x') return 16;
+    throw std::runtime_error("Invalid char base: `" + ctos(base) + "`");
+    exit(1);
+}
+
+// Convert string to lower case
+std::string str_lower(const std::string str) {
+    std::string out;
+    for (char c : str) out += (c >= 'A' && c <= 'Z') ? c + CASE_TRANSFORM : c;
+    return out;
+}
+
+// Return pointer to last string in vector
+std::string* get_last(std::vector<std::string>& vector) {
+    return &(vector[vector.size() - 1]);
+}
+
 // Convert character to string
 std::string ctos(const char c) { return std::string(1, c); }
 
-void _push_token(std::string& type, std::vector<std::string>& data,
+void _push_token(std::string& type, std::vector<std::string>& data, int pos,
                  std::vector<abnf::token_t>& tokens) {
-    tokens.push_back({type, data});
+    tokens.push_back({type, data, pos});
     type = "";
     data.clear();
+}
+
+// Throw an error
+void throw_error(std::string text, std::string error, int pos_start,
+                 int pos_end = -1) {
+    int length = pos_end - pos_start;
+    if (length < 0) length = 1;
+
+    // Pad with spaces
+    while (text.length() < pos_end) text += ' ';
+
+    // Print error
+    printf("\033[1;31m%s\033[0m\n", error.c_str());
+
+    // Highlight error'd bit
+    std::string norm = "\033[40m\033[37;1m";
+    printf("%s%s\033[0m", norm.c_str(), text.substr(0, pos_start).c_str());
+    printf("\033[37;1m\033[41m%s\033[0m",
+           text.substr(pos_start, length).c_str());
+    printf("%s%s\033[0m", norm.c_str(), text.substr(pos_end).c_str());
+
+    // Print pointer to error
+    printf("\n%s", norm.c_str());
+    for (int i = 0; i < pos_start; i++) printf(" ");
+    printf("\033[1;31m^");
+    for (int i = 1; i < length; i++) printf("~");
+    printf("\033[0m\n");
+
+    exit(1);
 }
 
 #endif

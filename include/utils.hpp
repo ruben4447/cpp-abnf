@@ -13,8 +13,17 @@ std::string string_remove(std::string program, char c);
 std::chrono::milliseconds get_time_ms();
 std::vector<std::string> string_split(std::string program, char delimiter);
 
+bool is_digit(char c);
+bool digit_match_base(char base, char digit);
+int basechar_to_int(char base);
+std::string str_lower(const std::string str);
+std::string* get_last(std::vector<std::string>& vector);
+
 std::string ctos(const char c);
-void _push_token(std::string& type, std::vector<std::string>& data,
+void _push_token(std::string& type, std::vector<std::string>& data, int pos,
                  std::vector<abnf::token_t>& tokens);  // Push to token array
+
+void throw_error(std::string text, std::string error, int pos_start,
+                 int pos_end);
 
 #endif

@@ -13,7 +13,10 @@ int main(int argc, char* argv[]) {
     abnf::VarCollection var_collection;
 
     auto lines = file_read_lines(argv[1]);
-    for (auto line : lines) abnf::define_var_fatal(line, &var_collection);
+    for (auto line : lines) {
+        std::string vname = abnf::define_var_fatal(line, &var_collection);
+    }
+    printf("\n");
 
     for (auto item : var_collection.vars) {
         printf("--- Variable %s ---\n", item.first.c_str());
