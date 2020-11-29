@@ -1,18 +1,16 @@
 #ifndef _VAR_COLLECTION_H_
 #define _VAR_COLLECTION_H_
 
-#include <string>
 #include <map>
+#include <string>
 
 #include "variable.hpp"
 
 namespace abnf {
-    class VarCollection {
-        public:
-            std::map<std::string, Variable> vars;
-
-            void add_var(Variable& var);
-    };
+class VarCollection {
+   public:
+    std::map<std::string, Variable> vars;
 };
+};  // namespace abnf
 
 #endif

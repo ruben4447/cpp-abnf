@@ -1,4 +1,3 @@
 bit = "0" / "1"
-bits = 1*bit
 bitstream = *bit
 byte = 8bit

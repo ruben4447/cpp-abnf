@@ -60,19 +60,18 @@ int_pair_t Variable::lex(std::string& msg) {
                 inc = c == '<' ? 1 : 0;
             } else if (c == '/') {
                 // ALTERNATIVE
-                token.type = "alternative";
-                token.spos = pos;
-                token.length = 1;
-                tokens.push_back(token);
-                token = {};
+                Token t = {.type = "alternative", .spos = pos, .length = 1};
+                tokens.push_back(t);
             } else if (c == '(' || c == ')') {
                 // OPEN/CLOSE Sequence group
-                token.type = "sequence_group";
-                token.data.push_back(ctos(c));
-                token.spos = pos;
-                token.length = 1;
-                tokens.push_back(token);
-                token = {};
+                Token t = {.type = "sequence_group", .spos = pos, .length = 1};
+                t.data.push_back(ctos(c));
+                tokens.push_back(t);
+            } else if (c == '[' || c == ']') {
+                // OPEN/CLOSE Sequence group
+                Token t = {.type = "optional_group", .spos = pos, .length = 1};
+                t.data.push_back(ctos(c));
+                tokens.push_back(t);
             } else if (is_digit(c) || c == '*') {
                 token.type = "repetition";
                 token.data.push_back(c == '*' ? "0" : "");
@@ -175,6 +174,7 @@ int_pair_t Variable::lex(std::string& msg) {
                 if (c == '>') inc++;  // Hop over this
                 tokens.push_back(token);
                 token = {};
+                inc = 0;
             }
         } else if (token.type == "repetition") {
             if (is_digit(c)) {

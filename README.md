@@ -67,6 +67,10 @@ Operations:
 - Sequence Group
   - Syntax: `(<expr>)`
   - Groups rules in a definition
+- Optional Group
+  - Syntax: `[<expr>]`
+  - `<expr>` is optional
+    - Same as `*1(<expr>)`
 - Repetition
   - Syntax: `<a>*<b><expr>`
     - ... Where `<expr`> is repeated a to b (exclusive) times
