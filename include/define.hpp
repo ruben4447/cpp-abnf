@@ -4,10 +4,11 @@
 #include <string>
 
 #include "var_collection.hpp"
+#include "variable.hpp"
 
 namespace abnf {
-bool define_var(std::string input, VarCollection* var_collection,
-                std::string& msg);
+int_pair_t define_var(std::string input, VarCollection* var_collection,
+                      std::string& msg);
 std::string define_var_fatal(std::string input, VarCollection* var_collection);
 };  // namespace abnf
 

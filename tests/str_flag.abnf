@@ -1,1 +1,1 @@
-var = %i"A" %s"A" "A" ; Case sensitive
+var = %i"A" "A" %s"A" ; Explicit case-insensitive, implicit case-insensitive, case-sensitive

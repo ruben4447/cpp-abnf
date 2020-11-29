@@ -39,4 +39,13 @@ bool consume_string(std::string& input, std::string& value) {
     value = "error: unterminated string literal";
     return false;
 }
+
+int consume_int(std::string& input) {
+    std::string val;
+    while (input.length() != 0 && input[0] >= '0' && input[0] <= '9') {
+        val += input[0];
+        input.erase(0, 1);
+    }
+    return val == "" ? 0 : std::stoi(val);
+}
 };  // namespace abnf

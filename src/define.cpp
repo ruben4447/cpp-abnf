@@ -7,15 +7,27 @@
 #include "../include/variable.hpp"
 
 namespace abnf {
-// Define a variable... msg is set to either ERROR or 'variable name'
-bool define_var(std::string input, VarCollection* var_collection,
-                std::string& msg) {
+// Define a variable... msg is set to either ERROR or 'variable name'. Return
+// { latest_pos, length }
+int_pair_t define_var(std::string input, VarCollection* var_collection,
+                      std::string& msg) {
+    int pos = 0;
+
+    std::string before = input;
     consume_whitespace(input);
+    pos += before.length() - input.length();
+    int whitespace_len = pos;
 
     // Comment?
     if (input[0] == ';') {
-        msg = "commented line";
-        return true;
+        msg = "Line commented out";
+        return {-1, 0};
+    }
+
+    // Nothing left
+    if (input.length() == 0) {
+        msg = "End of input";
+        return {-1, 0};
     }
 
     // Extract variable name
@@ -28,56 +40,72 @@ bool define_var(std::string input, VarCollection* var_collection,
     std::string var_name;
     if (matches.size() == 0) {
         msg = "error: invalid identifier: expected match of " + pattern_str;
-        return false;
+        return {pos, input.length()};
     } else {
         // str(0) contains whole match; str(1) contains in (...)
         var_name = str_lower(matches.str(1));
-        input.erase(0, matches.str(0).length());
+        int len = matches.str(0).length();
+        pos += len;
+        input.erase(0, len);
     }
 
+    before = input;
     consume_whitespace(input);
+    pos += before.length() - input.length();
+
+    if (input.length() == 0) {
+        msg = "error: unexpected end of input";
+        return {pos, 2};
+    }
 
     // Extract assignation sign
     pattern = "^=/?";
     std::regex_search(input, matches, pattern);
     std::string assign_op;
     if (matches.size() == 0) {
-        msg = "error: expected assignation, got '" + input + "'";
-        return false;
+        msg = "error: expected assignation";
+        return {pos, input.length()};
     } else {
         assign_op = matches.str(0);
+        pos += assign_op.length();
         input.erase(0, assign_op.length());
+    }
+
+    if (input.length() == 0) {
+        msg = "error: unexpected end of input";
+        return {pos, 2};
     }
 
     // Get variable (var must exist for =/)
     auto var_search = var_collection->vars.find(var_name);
     if (var_search == var_collection->vars.end()) {
-        // New variable... create new variable
-        Variable var(var_name.c_str(), input);
-        var_collection->vars.insert({var_name, var});
+        if (assign_op == "=/") {
+            msg = "error: cannot concatenate to unresolved name " + var_name;
+            return {whitespace_len, var_name.length()};
+        } else {  // New variable... create new variable
+            Variable var(var_name.c_str(), input);
+            var_collection->vars.insert({var_name, var});
+        }
     } else if (assign_op == "=") {
         // Overwrite old contents
         var_search->second.def_string = input;
     } else if (assign_op == "=/") {
         // Append input
         var_search->second.def_string += "/ " + input;
-    } else {
-        msg = "error: invalid assignatopn operator " + input;
-        return false;
     }
 
     msg = var_name;
-    return true;
+    return {-1, 0};
 }
 
 // Define variable, but terminate upon error. Return variable name.
 std::string define_var_fatal(std::string input, VarCollection* var_collection) {
     std::string msg;
-    bool ok = define_var(input, var_collection, msg);
-    if (ok)
+    int_pair_t pair = define_var(input, var_collection, msg);
+    if (pair.first < 0)
         return msg;
     else {
-        printf("\033[0;31m %s \033[0m \n", msg.c_str());
+        throw_error(input, msg, pair.first, pair.first + pair.second);
         exit(1);
     }
 }

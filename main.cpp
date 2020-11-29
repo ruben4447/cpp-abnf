@@ -10,9 +10,11 @@
 #include "src/variable.cpp"
 
 int main(int argc, char* argv[]) {
+    // int main() {
     abnf::VarCollection var_collection;
 
     auto lines = file_read_lines(argv[1]);
+    // auto lines = file_read_lines("tests/repetition.abnf");
     for (auto line : lines) {
         std::string vname = abnf::define_var_fatal(line, &var_collection);
     }

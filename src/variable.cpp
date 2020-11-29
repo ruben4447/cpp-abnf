@@ -19,8 +19,9 @@ std::string Variable::get_name() { return _name; }
  *  String: { "string", { flag, str } }
  *  Numeric { "numeric", { base, num, ... } }
  *  Numeric Range: { "numeric_range", { base, lower, upper } }
+ *  Repetition: { "repetition", { min, max } }
  */
-lex_return_t Variable::lex(std::string& msg) {
+int_pair_t Variable::lex(std::string& msg) {
     std::vector<Token> tokens;
 
     // Data for next token
@@ -29,8 +30,9 @@ lex_return_t Variable::lex(std::string& msg) {
     int lim = def_string.length();
     std::string source = def_string;  // Copy of def_string
     int inc;                          // How much to increment pos by?
+    int pos;                          // Position in string (not really)
 
-    for (int pos = 0; pos < lim;) {
+    for (pos = 0; pos < lim;) {
         char c = source[0];
         inc = 1;
 
@@ -51,14 +53,31 @@ lex_return_t Variable::lex(std::string& msg) {
             } else if (c == ';') {
                 // Comment
                 break;
-            } else if (is_alpha(c)) {
+            } else if (is_alpha(c) || c == '<') {
                 // VARIABLE?
                 token.type = "identifier";
-                token.data.push_back(ctos(c));
-            } else if (c == '<') {
-                // VARIABLE enclosed in <>
-                token.type = "identifier";
                 token.data.push_back("");
+                inc = c == '<' ? 1 : 0;
+            } else if (c == '/') {
+                // ALTERNATIVE
+                token.type = "alternative";
+                token.spos = pos;
+                token.length = 1;
+                tokens.push_back(token);
+                token = {};
+            } else if (c == '(' || c == ')') {
+                // OPEN/CLOSE Sequence group
+                token.type = "sequence_group";
+                token.data.push_back(ctos(c));
+                token.spos = pos;
+                token.length = 1;
+                tokens.push_back(token);
+                token = {};
+            } else if (is_digit(c) || c == '*') {
+                token.type = "repetition";
+                token.data.push_back(c == '*' ? "0" : "");
+                token.spos = pos;
+                inc = 0;
             } else {
                 msg = "error: unknown identification token " + ctos(c);
                 return {pos, 1};
@@ -89,8 +108,7 @@ lex_return_t Variable::lex(std::string& msg) {
                     token.data.push_back(ctos(d));
                     inc = 2;
                 } else {
-                    msg = "error: invalid literal for base " + ctos(c) + ": " +
-                          ctos(d);
+                    msg = "error: invalid literal for base " + ctos(c);
                     return {pos + 1, 1};
                 }
             } else if (c == 's' || c == 'i') {
@@ -132,6 +150,7 @@ lex_return_t Variable::lex(std::string& msg) {
             } else {
                 tokens.push_back(token);
                 token = {};
+                inc = 0;
             }
         } else if (token.type == "numeric_range") {
             char base = token.data[0][0];
@@ -146,6 +165,7 @@ lex_return_t Variable::lex(std::string& msg) {
                 } else {
                     tokens.push_back(token);
                     token = {};
+                    inc = 0;
                 }
             }
         } else if (token.type == "identifier") {
@@ -155,6 +175,32 @@ lex_return_t Variable::lex(std::string& msg) {
                 if (c == '>') inc++;  // Hop over this
                 tokens.push_back(token);
                 token = {};
+            }
+        } else if (token.type == "repetition") {
+            if (is_digit(c)) {
+                *get_last(token.data) += c;
+            } else if (c == '*') {
+                // Already encountered?
+                if (token.data.size() > 1) {
+                    msg =
+                        "error: unexpected token (already encountered * in "
+                        "repetition)";
+                    return {pos, 1};
+                }
+                // Default first arg: 0
+                if (token.data[0] == "") token.data[0] = "0";
+                token.data.push_back("");
+            } else {
+                // End number?
+                if (token.data.size() == 2 && token.data[1] == "")
+                    token.data[1] = std::to_string(ULLONG_MAX);
+                // Single-repitition?
+                if (token.data.size() == 1)
+                    token.data.push_back(
+                        std::to_string(std::stoi(token.data[0]) + 1));
+                tokens.push_back(token);
+                token = {};
+                inc = 0;
             }
         } else {
             msg = "error: unknown token type " + token.type;
@@ -215,27 +261,18 @@ lex_return_t Variable::lex(std::string& msg) {
         }
     }
 
-    // - Concatenate sequential strings with same flags
-    for (int i = 0; i < tokens.size() - 1;) {
-        // Both strings and flags are equal
-        if (tokens[i].type == "string" && tokens[i + 1].type == "string" &&
-            tokens[i].data[0][0] == tokens[i + 1].data[0][0]) {
-            // Concatenate strings
-            tokens[i].data[1] += tokens[i + 1].data[1];
-            tokens.erase(tokens.begin() + i + 1);
-        } else {
-            // Increment i
-            i++;
-        }
+    if (tokens.size() == 0) {
+        msg = "error: unexpected end of input";
+        return {lim, 2};
     }
 
     _tokens = tokens;
     return {-1, 0};
-}
+}  // namespace abnf
 
 void Variable::lex_fatal() {
     std::string msg;
-    lex_return_t val = lex(msg);  // { pos, len } of error
+    int_pair_t val = lex(msg);  // { pos, len } of error
     if (val.first > -1) {
         throw_error(def_string, msg, val.first, val.first + val.second);
     }

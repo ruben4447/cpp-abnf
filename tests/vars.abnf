@@ -1,2 +1,2 @@
-letter = %d65-90
+letter = %d65-90 ; A-Z
 pair = letter space <letter>

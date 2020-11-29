@@ -28,7 +28,7 @@ Comments start with `;` and continue until end of the line
 
 Declaration: `rule = definition [; comment] CR LF`
 
-### `rule`
+### Rules
 
 - May be surrounded by `<>`
 - Are case-insentitive: `<Hello>`, `hello` and `HeLlO` are considered the same
@@ -58,3 +58,18 @@ Operations:
   - Format: `%<base><lower>-<upper>`
   - Specifies any char in the range `lower <= char < upper` [Exclusive]
   - NB range cannot be negative (i.e. `upper - lower > 0`)
+
+### Operators
+
+- Alternative
+  - Syntax: `<expr> / <expr>`
+  - Basically an OR operation
+- Sequence Group
+  - Syntax: `(<expr>)`
+  - Groups rules in a definition
+- Repetition
+  - Syntax: `<a>*<b><expr>`
+    - ... Where `<expr`> is repeated a to b (exclusive) times
+    - `a` and/or `b` may be excluded. `a` default to `0`, and `b` to `Infinity`
+  - Syntax: `<a><expr>`
+    - `<expr>` must appear exactly `<a>` times
