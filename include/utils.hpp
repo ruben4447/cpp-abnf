@@ -4,6 +4,7 @@
 #include <chrono>
 #include <string>
 #include <vector>
+#include <sys/stat.h>
 
 #include "../include/variable.hpp"
 
@@ -19,11 +20,11 @@ int charbase_to_int(char base);
 bool is_alpha(char c);
 std::string str_lower(const std::string str);
 std::string* get_last(std::vector<std::string>& vector);
-
 std::string ctos(const char c);
 int index_of(std::vector<std::string>&, std::string&);
-
 void throw_error(std::string text, std::string error, int pos_start,
                  int pos_end);
+bool file_exists(const std::string &name);
+std::string get_path(const std::string &fname);
 
 #endif

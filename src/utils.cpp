@@ -9,6 +9,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <sys/stat.h>
 
 // Given a filename, return contents as std::string
 std::string get_file_contents(std::string fileName) {
@@ -139,6 +140,19 @@ void throw_error(std::string text, std::string error, int pos_start,
     printf("\033[0m\n");
 
     exit(1);
+}
+
+// Does the given file name exist?
+bool file_exists(const std::string &name) {
+    struct stat buffer;
+    return (stat(name.c_str(), &buffer) == 0);
+}
+
+std::string get_path(const std::string &fname) {
+    size_t pos = fname.find_last_of("\\/");
+    return (std::string::npos == pos)
+               ? ""
+               : fname.substr(0, pos);
 }
 
 #endif
