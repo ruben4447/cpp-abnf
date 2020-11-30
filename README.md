@@ -26,10 +26,12 @@ Command Line: `./main.exe [file].abnf`
 
 Comments start with `;` and continue until end of the line
 
-Directives: instructions to pre-processor
+Directives are instructions to pre-processor and begin with `#`
 - `#include <file>` : include a file into the script. Looks in same directory as entry file. If file is surrounded in `<>`, the name will be considered a library and looked for in the appropriate directory
   - e.g. `#include test.abnf` : Dumps the file `./test.abnf` into the source file
-  - e.g. `#include <core>` : DUmps the library file `core.abnf` into the source file
+  - e.g. `#include <core>` : Dumps the library file `core.abnf` into the source file
+- `#exit` : stops pre-processor (current file only)
+  - Any statements after `#exit` will not be read
 
 Declaration: `rule op definition [; comment] CR LF`
 

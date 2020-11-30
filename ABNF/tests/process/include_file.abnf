@@ -1,0 +1,3 @@
+; Test inclusion of user-defined files
+#include include_file__bit.abnf
+byte = 8bit

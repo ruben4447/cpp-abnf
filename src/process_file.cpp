@@ -37,13 +37,13 @@ std::vector<std::string> _preprocess_file(std::string file_name,
             continue;
         } else if (line[0] == '#') {
             int dindex = line.find(' ');
-            if (dindex == -1) dindex = line.length() - 1; // Set index to EOL
+            if (dindex == -1) dindex = line.length(); // Set index to EOL
             std::string directive = line.substr(1, dindex - 1);
 
             // Pre-processor directive
             if (directive == "include") {
                 if (line.length() < 9) {
-                    throw_error(line, "error: invalid include", 0, line.length());
+                    throw_error(line, "file " + file_name + ": error: invalid include", 0, line.length());
                     exit(1);
                 }
                 std::string include = line.substr(9);
@@ -52,11 +52,10 @@ std::vector<std::string> _preprocess_file(std::string file_name,
                 else include = include_path + "\\" + include;
 
                 if (index_of(files, include) != -1) {
-                    throw_error(line, "error: circular include", 9,
-                                line.length() - 9);
+                    throw_error(line, "file " + file_name + ": error: circular include", dindex + 1, line.length());
                     exit(1);
                 } else if (!file_exists(include)) {
-                    throw_error(line, "File does not exist (full path: '" + include + "')", 9, line.length());
+                    throw_error(line, "file " + file_name + ": error: file does not exist (full path: '" + include + "')", 9, line.length());
                     exit(1);
                 }
 
@@ -64,8 +63,10 @@ std::vector<std::string> _preprocess_file(std::string file_name,
                 new_files.push_back(include);
                 auto f_lines = _preprocess_file(include, new_files, include_path);
                 for (auto f_line : f_lines) lines.push_back(f_line);
+            } else if (directive == "exit") {
+                break;   
             } else {
-                throw_error(line, "error: unknown directive " + directive, 1, dindex);
+                throw_error(line, "file " + file_name + ": error: unknown directive " + directive, 1, dindex);
             }
         } else {
             lines.push_back(line);
