@@ -6,6 +6,7 @@
 
 #include "../include/token_struct.hpp"
 #include "../include/utils.hpp"
+#include "../include/match_struct.hpp"
 
 namespace abnf {
 Variable::Variable(const char* name, bool is_const, std::string decl_str) {
@@ -288,5 +289,10 @@ void Variable::print_tokens() {
         for (auto item : token.data) printf("`%s` ", item.c_str());
         printf(" (%d - %d)\n", token.spos, token.spos + token.length);
     }
+}
+
+// EValuate against given input string
+match_return Variable::evaluate(std::string input) {
+    return { .ok = false, .msg = "Not Implemented" };
 }
 };  // namespace abnf

@@ -2,6 +2,8 @@
 
 ABNF stands for "Augmented Backus-Naur Form" and is an extended version of BNF.
 
+*This is currently under active development*
+
 ## Console Output
 
 To get coloured outputs (used in debug)...
@@ -18,9 +20,24 @@ About: [Coloured Text Output In Powershell](https://stackoverflow.com/questions/
 
 ## Interpret files
 
-Command Line: `./main.exe [file].abnf`
+Command Line: `./interpret.exe [file].abnf`
 
 - `file` : file containing ABNF rules
+
+Outputs all defined variables as tokens (as represented internally)
+
+## Compare files
+*01/12/2020*
+
+Load ABNF declaration from a source file and compare a single input against single variable
+
+Command Line: `./main.exe [abnf_souce] [compare_source] [compare_variable]`
+
+- `abnf_souce` : File containing ABNF declarations
+- `compare_source` : File containing input text to compare against an ABNF variable
+- `compare_variable` : Variable defined in `abnf_source` for `compare_source`'s contents to be evaluated against
+
+Outputs whether input matched variable, a message and a vector of matches
 
 ## Syntax
 

@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 
 #include "../include/variable.hpp"
+#include "../include/match_struct.hpp"
 
 std::string get_file_contents(std::string fileName);
 std::vector<std::string> file_read_lines(const char* fileName);
@@ -26,5 +27,6 @@ void throw_error(std::string text, std::string error, int pos_start,
                  int pos_end);
 bool file_exists(const std::string &name);
 std::string get_path(const std::string &fname);
+void print(abnf::match_return*);
 
 #endif

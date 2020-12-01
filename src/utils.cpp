@@ -4,12 +4,14 @@
 #define CASE_TRANSFORM 'a' - 'A'
 
 #include "../include/utils.hpp"
+#include "../include/match_struct.hpp"
 
 #include <chrono>
 #include <fstream>
 #include <string>
 #include <vector>
 #include <sys/stat.h>
+
 
 // Given a filename, return contents as std::string
 std::string get_file_contents(std::string fileName) {
@@ -19,6 +21,9 @@ std::string get_file_contents(std::string fileName) {
         contents += line + '\n';
     }
     file.close();
+
+    // Remove last '\n'
+    contents.erase(contents.length() - 1, 1);
     return contents;
 }
 
@@ -153,6 +158,16 @@ std::string get_path(const std::string &fname) {
     return (std::string::npos == pos)
                ? ""
                : fname.substr(0, pos);
+}
+
+// Print match_return struct to stdout
+void print(abnf::match_return* value) {
+    printf("=== struct match_return ===\n");
+    printf("Ok: %d\n", value->ok);
+    printf("Msg: '%s'\n", value->msg.c_str());
+    printf("Matches: %d\n", value->matches.size());
+    for (auto match : value->matches) printf("~ Match: `%s`\n", match.c_str());
+    printf("===========================\n");
 }
 
 #endif

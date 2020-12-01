@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "token_struct.hpp"
+#include "match_struct.hpp"
 
 namespace abnf {
 typedef std::tuple<std::string, std::vector<std::string>, int, int>
@@ -30,6 +31,8 @@ class Variable {
     int_pair_t lex(std::string& msg);  // Lex def_string into tokens. Return
                                        // position of failiure or -1
     void lex_fatal();                  // Same as lex(), but fatal if error
+
+    match_return evaluate(std::string input); // EValuate variable against given input
 };
 };  // namespace abnf
 
