@@ -16,17 +16,19 @@
 // FORMAT: [abnf_source_file] [comp_file]
 int main(int argc, char* argv[]) {
     // int main() {
-    abnf::VarCollection var_collection;
-    abnf::process_file(argv[1], &var_collection);
 
-    // for (auto item : var_collection.vars) {
-    //     printf("***** Variable %s *****\n", item.first.c_str());
-    //     item.second.lex_fatal();
-    //     item.second.print_tokens();
-    //     printf("\n");
-    // }
+    if (argc == 4) {
+        // Process source.abnf file
+        abnf::VarCollection var_collection;
+        abnf::process_file(argv[1], &var_collection);
 
-    if (argc > 3) {
+        // for (auto item : var_collection.vars) {
+        //     printf("***** Variable %s *****\n", item.first.c_str());
+        //     item.second.lex_fatal();
+        //     item.second.print_tokens();
+        //     printf("\n");
+        // }
+
         std::string comp_file = get_file_contents(argv[2]);
         
         abnf::match_return val = abnf::evaluate(&var_collection, std::string(argv[3]), comp_file);

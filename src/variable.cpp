@@ -291,8 +291,5 @@ void Variable::print_tokens() {
     }
 }
 
-// EValuate against given input string
-match_return Variable::evaluate(std::string input) {
-    return { .ok = false, .msg = "Not Implemented" };
-}
+// Variable::evaluate(...) define in ./src/eval.cpp
 };  // namespace abnf
