@@ -8,6 +8,7 @@
 #include "../include/variable.hpp"
 
 std::string get_file_contents(std::string fileName);
+bool file_exists(std::string);
 std::vector<std::string> file_read_lines(const char* fileName);
 std::string string_remove(std::string program, char c);
 std::chrono::milliseconds get_time_ms();
@@ -23,6 +24,8 @@ std::string* get_last(std::vector<std::string>& vector);
 std::string ctos(const char c);
 int index_of(std::vector<std::string>&, std::string&);
 
+void print_error(std::string text, std::string error, int pos_start,
+                 int pos_end);
 void throw_error(std::string text, std::string error, int pos_start,
                  int pos_end);
 

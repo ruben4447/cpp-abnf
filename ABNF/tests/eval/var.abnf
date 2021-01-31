@@ -1,0 +1,4 @@
+base = "a"
+middle = base base
+top = middle
+!test top, aaa

@@ -4,11 +4,12 @@
 #include <string>
 #include <vector>
 
+#include "../include/instance.hpp"
 #include "../include/token_struct.hpp"
 #include "../include/utils.hpp"
 
 namespace abnf {
-Variable::Variable(const char* name, bool is_const, std::string decl_str) {
+Variable::Variable(std::string name, bool is_const, std::string decl_str) {
     _name = name;
     _is_const = is_const;
     def_string = decl_str;
@@ -269,6 +270,7 @@ int_pair_t Variable::lex(std::string& msg) {
     }
 
     _tokens = tokens;
+    lexed = true;
     return {-1, 0};
 }  // namespace abnf
 

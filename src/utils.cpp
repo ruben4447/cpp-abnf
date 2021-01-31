@@ -21,6 +21,11 @@ std::string get_file_contents(std::string fileName) {
     return contents;
 }
 
+bool file_exists(std::string filename) {
+    std::ifstream file(filename);
+    return file.good();
+}
+
 // Get lines from a file
 std::vector<std::string> file_read_lines(const char* fileName) {
     std::ifstream file(fileName);
@@ -112,8 +117,7 @@ int index_of(std::vector<std::string>& strings, std::string& string) {
     return -1;
 }
 
-// Throw an error
-void throw_error(std::string text, std::string error, int pos_start,
+void print_error(std::string text, std::string error, int pos_start,
                  int pos_end = -1) {
     int length = pos_end - pos_start;
     if (length < 0) length = 1;
@@ -137,7 +141,11 @@ void throw_error(std::string text, std::string error, int pos_start,
     printf("\033[1;31m^");
     for (int i = 1; i < length; i++) printf("~");
     printf("\033[0m\n");
+}
 
+void throw_error(std::string text, std::string error, int pos_start,
+                 int pos_end = -1) {
+    print_error(text, error, pos_start, pos_end);
     exit(1);
 }
 

@@ -2,15 +2,14 @@
 #include <string>
 
 #include "../include/consume.hpp"
+#include "../include/instance.hpp"
 #include "../include/utils.hpp"
-#include "../include/var_collection.hpp"
 #include "../include/variable.hpp"
 
 namespace abnf {
 // Define a variable... msg is set to either ERROR or 'variable name'. Return
 // { latest_pos, length }
-int_pair_t define_var(std::string input, VarCollection* var_collection,
-                      std::string& msg) {
+int_pair_t Instance::define_var(std::string input, std::string& msg) {
     int pos = 0;
 
     std::string before = input;
@@ -77,14 +76,14 @@ int_pair_t define_var(std::string input, VarCollection* var_collection,
     }
 
     // Get variable (var must exist for =/)
-    auto var_search = var_collection->vars.find(var_name);
-    if (var_search == var_collection->vars.end()) {
+    auto var_search = Instance::vars.find(var_name);
+    if (var_search == Instance::vars.end()) {
         if (assign_op == "=/") {
             msg = "error: cannot concatenate to unresolved name " + var_name;
             return {whitespace_len, var_name.length()};
         } else {  // New variable... create new variable
-            Variable var(var_name.c_str(), assign_op == ":=", input);
-            var_collection->vars.insert({var_name, var});
+            Variable var(var_name, assign_op == ":=", input);
+            Instance::vars.insert({var_name, var});
         }
     } else if (assign_op == ":=") {
         // Cannot use := anywhere but definition
@@ -111,9 +110,9 @@ int_pair_t define_var(std::string input, VarCollection* var_collection,
 }
 
 // Define variable, but terminate upon error. Return variable name.
-std::string define_var_fatal(std::string input, VarCollection* var_collection) {
+std::string Instance::define_var_fatal(std::string input) {
     std::string msg;
-    int_pair_t pair = define_var(input, var_collection, msg);
+    int_pair_t pair = Instance::define_var(input, msg);
     if (pair.first < 0)
         return msg;
     else {

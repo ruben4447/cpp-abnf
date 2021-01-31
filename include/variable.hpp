@@ -8,20 +8,21 @@
 #include "token_struct.hpp"
 
 namespace abnf {
-typedef std::tuple<std::string, std::vector<std::string>, int, int>
-    token_t;  // This is used in lex(). { name, data, pos, length }
+// typedef std::tuple<std::string, std::vector<std::string>, int, int>
+//     token_t;  // This is used in lex(). { name, data, pos, length }
 typedef std::pair<int, int> int_pair_t;  // { spos, length }
 
 class Variable {
    private:
-    const char* _name;           // Name of variable
-    std::vector<Token> _tokens;  // Result of lex()
-    bool _is_const;              // Can be redefined?
+    std::string _name;  // Name of variable
+    bool _is_const;     // Can be redefined?
 
    public:
-    std::string def_string;  // Definition string
+    bool lexed = false;
+    std::string def_string;      // Definition string
+    std::vector<Token> _tokens;  // Result of lex()
 
-    Variable(const char*, bool is_const, std::string decl_str);
+    Variable(std::string, bool, std::string);
     std::string get_name();  // Get variable name
     bool is_const();
 
@@ -30,6 +31,8 @@ class Variable {
     int_pair_t lex(std::string& msg);  // Lex def_string into tokens. Return
                                        // position of failiure or -1
     void lex_fatal();                  // Same as lex(), but fatal if error
+
+    bool test(std::string&, std::string&, int&);
 };
 };  // namespace abnf
 

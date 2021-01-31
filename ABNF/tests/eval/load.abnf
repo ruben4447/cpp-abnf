@@ -1,0 +1,2 @@
+!load <core>
+!testfile CRLF, ./ABNF/tests/eval/__load.txt
