@@ -34,6 +34,7 @@ struct EvalData {
 class Instance {
    public:
     std::map<std::string, Variable> vars;
+    bool feedback = true;  // Feedback from console
 
     // -- Following functions defined in define.cpp
     int_pair_t define_var(std::string input, std::string& msg);

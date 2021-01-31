@@ -28,7 +28,13 @@ File is also pre-processes.
 
 Tests `<var>` against said `<input>` (*N.B . leading whitespace in `<input>` is consumed*)
 
-
 ### `!testfile <var>, <file>`
 
 Tests `<var>` against contents of `<file>`.
+
+
+### `!feedback <on|off>`
+
+Controls extra feedback from console
+
+Feedback is defined as: *non-required information, such as `Loaded file...` or `Defined variable...`*

@@ -30,14 +30,44 @@ bool Instance::_test(EvalData* evaldata, varstack_t* var_stack) {
     int length = evaldata->input.length(), tsize = var_ptr->_tokens.size();
     int var_pos = 0;  // Position of token, NOT same as evaldata->var_pos
     int input_pos = 0;
-    char got;  // Current char in unput
+    char got;  // Current char in input
     Token* ctoken_ptr;
 
+    bool fail = false;  // Have we failed? (used in OR decisions)
+
+test_loop_start:
     while (input_pos < length && var_pos < tsize) {
-        printf("pos: %i; var pos: %i / %i\n", input_pos, var_pos, tsize);
+        printf("pos: %i; var pos: %i / %i; fail: %i\n", input_pos, var_pos,
+               tsize, fail);
         ctoken_ptr = &(var_ptr->_tokens[var_pos]);
         got = evaldata->input[input_pos];
         printf("Type: %s\n", ctoken_ptr->type.c_str());
+
+        if (fail) {
+            if (ctoken_ptr->type == "alternative") {
+                printf("Found alternative @ %i \n", ctoken_ptr->spos);
+
+                // Move past alternative, and resume
+                var_pos++;
+                input_pos = 0;  // Move to begining of input
+                fail = false;
+                printf("MOVE TO pos: %i; var pos: %i / %i\n", input_pos,
+                       var_pos, tsize);
+
+                goto test_loop_start;
+            } else {
+                // Crawl forward
+                printf("FAIL IS TRUE\n");
+                var_pos++;
+                goto test_loop_start;
+            }
+        }
+
+        // Pass if alternate
+        if (ctoken_ptr->type == "alternative" && !fail) {
+            printf("Success and reached alternate : TERMINATE\n");
+            break;
+        }
 
         if (ctoken_ptr->type == "numeric") {
             // Match all characters
@@ -48,7 +78,8 @@ bool Instance::_test(EvalData* evaldata, varstack_t* var_stack) {
                     evaldata->msg = "Expected character of code " +
                                     std::string(ctoken_ptr->data[data_pos]) +
                                     ", got EOL";
-                    goto test_fail;
+                    fail = true;
+                    goto test_loop_start;
                 }
 
                 got = evaldata->input[input_pos];
@@ -59,7 +90,8 @@ bool Instance::_test(EvalData* evaldata, varstack_t* var_stack) {
                     evaldata->msg = "Expected charcode " +
                                     std::to_string(expected) +
                                     ", got charcode " + std::to_string(got);
-                    goto test_fail;
+                    fail = true;
+                    goto test_loop_start;
                 }
             }
             var_pos++;
@@ -74,7 +106,8 @@ bool Instance::_test(EvalData* evaldata, varstack_t* var_stack) {
                                 std::to_string(range_lower) + " - " +
                                 std::to_string(range_upper) +
                                 ", but got charcode " + std::to_string(got);
-                goto test_fail;
+                fail = true;
+                goto test_loop_start;
             }
             var_pos++;
             input_pos++;
@@ -87,7 +120,8 @@ bool Instance::_test(EvalData* evaldata, varstack_t* var_stack) {
                                 std::to_string(length - input_pos) +
                                 ", which is less than required string \"" +
                                 ctoken_ptr->data[1] + "\"";
-                goto test_fail;
+                fail = true;
+                goto test_loop_start;
             }
 
             std::string extracted = evaldata->input.substr(input_pos, l);
@@ -107,7 +141,8 @@ bool Instance::_test(EvalData* evaldata, varstack_t* var_stack) {
             } else {
                 evaldata->msg = "Expected string \"" + ctoken_ptr->data[1] +
                                 "\", got \"" + extracted + "\"";
-                goto test_fail;
+                fail = true;
+                goto test_loop_start;
             }
             var_pos++;
         } else if (ctoken_ptr->type == "identifier") {
@@ -115,11 +150,6 @@ bool Instance::_test(EvalData* evaldata, varstack_t* var_stack) {
             if (var_pos == 0) {
                 std::string varref;
                 bool cref = ctoken_ptr->data[0] == var_ptr->get_name();
-                // printf(
-                //     "@ VAR POS 0. Current Var: %s, var going to: %s (cref = "
-                //     "%i)\n",
-                //     var_ptr->get_name().c_str(), ctoken_ptr->data[0].c_str(),
-                //     cref);
                 if (!cref) {
                     for (auto var : *var_stack) {
                         if (ctoken_ptr->data[0] == var) {
@@ -134,7 +164,8 @@ bool Instance::_test(EvalData* evaldata, varstack_t* var_stack) {
                 if (cref) {
                     evaldata->msg = "reference error: circular reference to '" +
                                     varref + "'";
-                    goto test_fail;
+                    fail = true;
+                    goto test_loop_start;
                 }
             }
 
@@ -143,7 +174,8 @@ bool Instance::_test(EvalData* evaldata, varstack_t* var_stack) {
             if (it == Instance::vars.end()) {
                 evaldata->msg = "reference error: variable '" +
                                 ctoken_ptr->data[0] + "' does not exist";
-                goto test_fail;
+                fail = true;
+                goto test_loop_start;
             } else {
                 std::string new_input = evaldata->input;
                 EvalData edata(ctoken_ptr->data[0], new_input);
@@ -157,37 +189,45 @@ bool Instance::_test(EvalData* evaldata, varstack_t* var_stack) {
                     for (auto item : edata.estack)
                         evaldata->estack.push_back(item);
                     evaldata->msg = edata.msg;
-                    goto test_fail;
+                    fail = true;
+                    goto test_loop_start;
                 }
                 var_stack->pop_back();
             }
             var_pos++;
         } else {
             evaldata->msg = "error: unknown token type: " + ctoken_ptr->type;
-            goto test_fail;
+            fail = true;
+            goto test_loop_start;
         }
     }
 
     // Have all tokens been scanned?
-    if (var_pos < var_ptr->_tokens.size()) {
-        evaldata->msg = "Unexpected EOL while scanning";
-        goto test_fail;
+    if (!fail && var_pos < tsize) {
+        // If ended on alternate...
+        if (var_ptr->_tokens[var_pos].type == "alternative") {
+            printf("EOL, but last is alternative\n");
+        } else {
+            evaldata->msg = "Unexpected EOL while scanning";
+            fail = true;
+        }
     }
 
-    goto test_success;
-test_fail:
-    evaldata->estack.push_back({.varptr = var_ptr,
-                                .input_pos = input_pos,
-                                .var_pos = ctoken_ptr->spos,
-                                .var_len = ctoken_ptr->length});
-    evaldata->input_pos = input_pos;
-    evaldata->ok = false;
-    return false;
-
-test_success:
-    evaldata->input_pos = input_pos;
-    evaldata->ok = true;
-    return true;
+    if (fail) {
+        printf("Fail Token: %s (pos: %i) \n", ctoken_ptr->type.c_str(),
+               ctoken_ptr->spos);
+        evaldata->estack.push_back({.varptr = var_ptr,
+                                    .input_pos = input_pos,
+                                    .var_pos = ctoken_ptr->spos,
+                                    .var_len = ctoken_ptr->length});
+        evaldata->input_pos = input_pos;
+        evaldata->ok = false;
+        return false;
+    } else {
+        evaldata->input_pos = input_pos;
+        evaldata->ok = true;
+        return true;
+    }
 }
 };  // namespace abnf
 

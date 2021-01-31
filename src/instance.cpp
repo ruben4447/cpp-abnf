@@ -14,8 +14,12 @@ void Instance::load_file(std::string file) {
 
 // Take input
 void Instance::execute(std::string input) {
+    consume_whitespace(input);
+
     // Is a command?
-    if (input[0] == '!') {
+    if (input[0] == ';')
+        ;
+    else if (input[0] == '!') {
         std::string cmd;
         auto parts = string_split(input, ' ');
         if (parts.size() == 0)
@@ -24,7 +28,21 @@ void Instance::execute(std::string input) {
         cmd = parts[0];
         cmd.erase(0, 1);
 
-        if (cmd == "test" || cmd == "testfile") {
+        if (cmd == "feedback") {
+            input.erase(0, 1 + cmd.length());
+            consume_whitespace(input);
+            if (input == "") {
+                printf("Feedback: %s\n", Instance::feedback ? "On" : "Off");
+            } else if (input == "on") {
+                Instance::feedback = true;
+                printf("Feedback: On\n");
+            } else if (input == "off") {
+                Instance::feedback = false;
+            } else {
+                print_error("!extrainfo " + input, "Expected boolean on/off",
+                            11, 11 + input.length());
+            }
+        } else if (cmd == "test" || cmd == "testfile") {
             parts = string_split(input, ',');
             if (parts.size() < 2)
                 return print_error(input, "Invalid syntax", 1 + cmd.length(),
@@ -52,14 +70,17 @@ void Instance::execute(std::string input) {
             Instance::test(&evaldata);
             if (evaldata.ok) {
                 evaldata.input.erase(0, evaldata.input_pos);
-                printf("Success. Remaining: \"%s\" \n", evaldata.input.c_str());
+                printf("\u001b[32mSuccess.\u001b[0m\nRemaining: \"%s\" \n",
+                       evaldata.input.c_str());
             } else {
                 auto it = Instance::vars.find(var);
-                printf("Fail.\n");
+                printf("\u001b[31mFail.\u001b[0m\n");
                 // Poit=nt error position in input
-                print_error(evaldata.input,
-                            evaldata.msg + "\nWhile scanning input",
-                            evaldata.input_pos, evaldata.input_pos + 1);
+                print_error(
+                    evaldata.input,
+                    "Eval Error\n" + evaldata.msg + "\nWhile scanning input",
+                    evaldata.input_pos, evaldata.input_pos + 1);
+
                 // Var stack
                 for (auto item : evaldata.estack) {
                     print_error(item.varptr->def_string,
@@ -87,8 +108,8 @@ void Instance::execute(std::string input) {
                 print_error(input, "Variable does not exist", 0,
                             1 + input.length());
             } else {
-                printf("***** Variable %s ***** (lexed: %i)\n",
-                       found->second.get_name().c_str(), found->second.lexed);
+                printf("***** Variable %s *****\n",
+                       found->second.get_name().c_str());
                 found->second.print_tokens();
                 printf("\n");
             }
@@ -99,13 +120,14 @@ void Instance::execute(std::string input) {
 
             if (file_exists(input)) {
                 Instance::load_file(input);
-                printf("Loaded file %s\n", input.c_str());
+                if (Instance::feedback)
+                    printf("Loaded file %s\n", input.c_str());
             } else {
                 print_error("!load " + input, "File does not exist", 6,
                             6 + input.length());
             }
         } else {
-            print_error(input, "Invalid command", 1, 1 + cmd.length());
+            print_error(input, "Unknown command", 1, 1 + cmd.length());
         }
     } else {
         std::string msg;
@@ -115,15 +137,17 @@ void Instance::execute(std::string input) {
             msg = "";
             pair = iterator->second.lex(msg);
             if (pair.first > -1) {
-                print_error(iterator->second.def_string, msg, pair.first,
-                            pair.first + pair.second);
+                print_error(iterator->second.def_string, "Lexer Error\n" + msg,
+                            pair.first, pair.first + pair.second);
                 Instance::vars.erase(iterator);
             } else {
-                printf("Defined variable '%s'\n",
-                       iterator->second.get_name().c_str());
+                if (Instance::feedback)
+                    printf("Defined variable '%s'\n",
+                           iterator->second.get_name().c_str());
             }
         } else
-            print_error(input, msg, pair.first, pair.first + pair.second);
+            print_error(input, "Definition Error\n" + msg, pair.first,
+                        pair.first + pair.second);
     }
 }
 };  // namespace abnf
